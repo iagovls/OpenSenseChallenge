@@ -180,6 +180,6 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-PATENTES.HTML
+PATENTES.html
 solution copy.py
 pycache/

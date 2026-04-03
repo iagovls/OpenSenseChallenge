@@ -4,69 +4,38 @@ import datetime
 import html as html_lib
 
 def generateHTML(items):
-    items = items or []
-    preferred_headers = [
-        "Arquivo",
-        "CNPJ",
-        "Resultado",
-        "Número do Pedido",
-        "Data do Depósito",
-        "Titulo",
-        "ICP",
-    ]
 
-    headers = []
-    for header in preferred_headers:
-        if any(isinstance(row, dict) and header in row for row in items):
-            headers.append(header)
+    lines = ""
 
-    for row in items:
-        if not isinstance(row, dict):
-            continue
-        for key in row.keys():
-            if key not in headers:
-                headers.append(key)
+    for d in items:
+        lines += f"<tr><td>{d['Arquivo']}</td><td>{d['CNPJ']}</td><td>{d['Resultado']}</td><td>{d['Número do Pedido']}</td><td>{d['Data do Depósito']}</td><td>{d['Título']}</td><td>{d['ICP']}</td></tr>"
 
-    lines = [
-        "<!DOCTYPE html>",
-        "<html>",
-        "<head>",
-        '<meta charset="utf-8">',
-        "<title>PATENTES</title>",
-        "</head>",
-        "<body>",
-        '<table border="1">',
-        "<thead>",
-        "<tr>",
-    ]
+    html = f"""
+    <html>
+    <head>
+        <style>
+            table {{
+                border-collapse: collapse;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: center;
+            }}
+            th, td {{
+                padding: 10px;
+            }}
+        </style>
+    </head>
+    <body>
+        <table border="1">
+            <tr><th>Arquivo</th><th>CNPJ</th><th>Resultado</th><th>Número do Pedido</th><th>Data do Depósito</th><th>Título</th><th>ICP</th></tr>
+            {lines}
+        </table>
+    </body>
+    </html>
+    """
 
-    for header in headers:
-        lines.append(f"<th>{html_lib.escape(str(header))}</th>")
-
-    lines += [
-        "</tr>",
-        "</thead>",
-        "<tbody>",
-    ]
-
-    for row in items:
-        if not isinstance(row, dict):
-            continue
-        lines.append("<tr>")
-        for header in headers:
-            value = row.get(header, "")
-            lines.append(f"<td>{html_lib.escape(str(value))}</td>")
-        lines.append("</tr>")
-
-    lines += [
-        "</tbody>",
-        "</table>",
-        "</body>",
-        "</html>",
-    ]
-
-    with open("PATENTES.HTML", "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+    with open("PATENTES.html", "w", encoding="utf-8") as file:
+        file.write(html)
 
 def getDate(date):
     return datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
@@ -83,15 +52,6 @@ def getResults(soup):
         return len(results)
     except:
         return 0
-
-def getTableData(soup):
-    results = soup.find("tbody", id="tituloContext").find_all("tr")
-    for tr in results:
-        print(tr.contents[5].contents[1].contents[1]) # Titulo
-        print(tr.contents[1].contents[1].contents[1].contents[0].strip()) # Pedido
-        print(tr.contents[7].contents[1].contents[0].strip()) # ICP
-        print(tr.contents[3].contents[1].contents[0].strip()) # Data
-    return title
 
 path = Path("./PATENTES")
 
@@ -112,7 +72,7 @@ for file in path.glob("*.html"):
                     "Resultado": getResults(soup),
                     "Número do Pedido": tr.contents[1].contents[1].contents[1].contents[0].strip(),
                     "Data do Depósito": getDate(tr.contents[3].contents[1].contents[0].strip()),
-                    "Titulo": tr.contents[5].contents[1].contents[1].contents[0].strip(),
+                    "Título": tr.contents[5].contents[1].contents[1].contents[0].strip(),
                     "ICP": tr.contents[7].contents[1].contents[0].strip(),
                 })
         else:    
@@ -122,7 +82,7 @@ for file in path.glob("*.html"):
                 "Resultado": getResults(soup),
                 "Número do Pedido": "-",
                 "Data do Depósito": "-",
-                "Titulo": "-",
+                "Título": "-",
                 "ICP": "-",
                     })   
        
