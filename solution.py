@@ -2,6 +2,15 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import datetime
 
+# Gera um arquivo PATENTES.html com os dados dos registros em items
+# items: uma lista de dicionários, cada um representendo um registro com os campos:
+#   Arquivo: nome do arquivo html
+#   CNPJ: CNPJ
+#   Resultado: quantidade de resultados encontrados em cada arquivo
+#   Número do Pedido: número do pedido
+#   Data do Depósito: data do depósito
+#   Título: título da patente
+#   ICP: número do ICP
 def generateHTML(items):
 
     lines = ""
@@ -36,14 +45,21 @@ def generateHTML(items):
     with open("PATENTES.html", "w", encoding="utf-8") as file:
         file.write(html)
 
-def getDate(date):
+# Formata a data para o formato YYYY-MM-DD
+def formatDate(date):
     return datetime.datetime.strptime(date, "%d/%m/%Y").strftime("%Y-%m-%d")
 
+# Retorna o CNPJ do arquivo html
+# Busca todos os elementos de texto e retorna uma substring do primeiro elemento que contém "CPF ou CNPJ do Depositante"
+# Se não encontrar, retorna "-"
 def getCNPJ(soup):
     textos = soup.find_all(string=True)
     for t in textos:
         if "CPF ou CNPJ do Depositante" in t:
             return t.strip()[29:-3]
+    return "-"
+
+# Retorna a quantidade de resultados encontrados no arquivo html
 
 def getResults(soup):
     try:
@@ -55,6 +71,8 @@ def getResults(soup):
 path = Path("./PATENTES")
 
 records = []
+
+# Processa todos os arquivos html na pasta PATENTES
 for file in path.glob("*.html"):
     with open(file, "r", encoding="ISO-8859-1") as htmlFile:
         html_content = htmlFile.read()
@@ -70,11 +88,12 @@ for file in path.glob("*.html"):
                     "CNPJ": getCNPJ(soup),
                     "Resultado": getResults(soup),
                     "Número do Pedido": tr.contents[1].contents[1].contents[1].contents[0].strip(),
-                    "Data do Depósito": getDate(tr.contents[3].contents[1].contents[0].strip()),
+                    "Data do Depósito": formatDate(tr.contents[3].contents[1].contents[0].strip()),
                     "Título": tr.contents[5].contents[1].contents[1].contents[0].strip(),
                     "ICP": tr.contents[7].contents[1].contents[0].strip(),
                 })
         else:    
+            # Se não encontrar resultados, adiciona um registro com os campos preenchidos com "-"
             records.append({
                 "Arquivo": file.name,
                 "CNPJ": getCNPJ(soup),
