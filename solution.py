@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
 import datetime
-import html as html_lib
 
 def generateHTML(items):
 
